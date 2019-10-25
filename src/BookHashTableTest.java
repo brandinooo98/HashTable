@@ -125,5 +125,42 @@ public class BookHashTableTest {
         //"size with one entry:"
         assertTrue(cap2 > cap1 & cap1 ==2);
     }
-    
+
+    @Test
+    public void test003_Key_Not_Found_Exception() throws IllegalNullKeyException, DuplicateKeyException {
+        for(int i = 0; i < 100; i++)
+            bookObject.insert(bookTable.get(i).getKey(), bookTable.get(i));
+        try{
+            bookObject.get("This is not an actual key");
+            fail("KeyNotFoundException was not thrown");
+        } catch (KeyNotFoundException e){}
+    }
+
+    @Test
+    public void test004_num_keys() throws IllegalNullKeyException, DuplicateKeyException {
+        for(int i = 0; i < 100; i++)
+            bookObject.insert(bookTable.get(i).getKey(), bookTable.get(i));
+        if(bookObject.numKeys() != 100)
+            fail("Instead of numKeys() returning 100, it returned " + bookObject.numKeys());
+        bookObject.remove(bookTable.get(73).getKey());
+        if(bookObject.numKeys() != 99)
+            fail("Instead of numKeys() returning 99, it returned " + bookObject.numKeys());
+    }
+
+    @Test
+    public void test005_Duplicate_Key_Exception() throws IllegalNullKeyException, DuplicateKeyException {
+        bookObject.insert(bookTable.get(0).getKey(), bookTable.get(0));
+        try {
+            bookObject.insert(bookTable.get(0).getKey(), bookTable.get(0));
+            fail("DuplicateKeyException was not thrown when it should have");
+        } catch (DuplicateKeyException e) {}
+    }
+
+    @Test
+    public void test006_get() throws IllegalNullKeyException, DuplicateKeyException, KeyNotFoundException {
+        for(int i = 0; i < 100; i++)
+            bookObject.insert(bookTable.get(i).getKey(), bookTable.get(i));
+        if(!bookObject.get(bookTable.get(46).getKey()).equals(bookTable.get(46)))
+            fail("Get did not return " + bookTable.get(46) + ", it returned " + bookObject.get(bookTable.get(46).getKey()));
+    }
 }

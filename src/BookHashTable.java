@@ -120,21 +120,37 @@ public class BookHashTable implements HashTableADT<String, Book> {
     public void insert(String key, Book value) throws IllegalNullKeyException, DuplicateKeyException {
         if(key == null)
             throw new IllegalNullKeyException();
-        // TODO: DUPLICATE KEY EXCEPTION
+        if(search(key, hashTable.get(Math.abs(key.hashCode() % capacity))) != 0)
+            throw new DuplicateKeyException();
         else {
-            hashTable.get(key.hashCode() % capacity).add(new BookNode(key, value));
+            hashTable.get(Math.abs(key.hashCode() % capacity)).add(new BookNode(key, value));
             numKeys++;
-            if(capacity == loadFactorThreshold)
+            if(numKeys / capacity > loadFactorThreshold)
                 resize();
         }
     }
 
-    private void resize() {
+    private void resize() throws IllegalNullKeyException, DuplicateKeyException {
+        ArrayList<LinkedList<BookNode>> bookList = new ArrayList<>();
+        for(int i = 0; i < capacity; i++) {
+            if(hashTable.get(i).size() != 0) {
+                bookList.add(hashTable.get(i));
+                hashTable.remove(i);
+                hashTable.add(new LinkedList<>());
+            }
+        }
         int newCapacity = 2 * capacity + 1;
         for (int i = 0; i < newCapacity - capacity; i++) {
             hashTable.add(new LinkedList<>());
         }
         capacity = newCapacity;
+        for(int i = 0; i < bookList.size(); i++) {
+            for(int j = 0; j < bookList.get(i).size(); j++) {
+                BookNode bookNode = bookList.get(i).get(j);
+                insert(bookNode.key, bookNode.book);
+                numKeys--;
+            }
+        }
     }
 
     // If key is found,
@@ -148,7 +164,7 @@ public class BookHashTable implements HashTableADT<String, Book> {
         if(key == null)
             throw new IllegalNullKeyException();
         else{
-            LinkedList<BookNode> bucket = hashTable.get(key.hashCode() % capacity);
+            LinkedList<BookNode> bucket = hashTable.get(Math.abs(key.hashCode() % capacity));
             int bookIndex = search(key, bucket);
             if(bookIndex == 0)
                 return false;
@@ -170,11 +186,11 @@ public class BookHashTable implements HashTableADT<String, Book> {
         if(key == null)
             throw new IllegalNullKeyException();
         else {
-            int bookIndex = search(key, hashTable.get(key.hashCode() % capacity));
+            int bookIndex = search(key, hashTable.get(Math.abs(key.hashCode() % capacity)));
             if (bookIndex == 0)
                 throw new KeyNotFoundException();
             else
-                return hashTable.get(key.hashCode() % capacity).get(bookIndex).book;
+                return hashTable.get(Math.abs(key.hashCode() % capacity)).get(bookIndex - 1).book;
         }
     }
 
